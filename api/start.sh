@@ -13,5 +13,5 @@ else
 fi
 
 cd "${DIR}" || exit 1 
-gunicorn --bind 0.0.0.0:13000 wsgi:app 
+gunicorn -w 4 --bind 0.0.0.0:13000 wsgi:app 
 
