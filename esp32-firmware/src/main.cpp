@@ -1,10 +1,13 @@
 #include <Arduino.h>
+#include "sound.hpp"
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <WiFi.h>
 
 #define WIFI_SSID "DEFCON"
 #define WIFI_PASSWORD "Explode@98"
+
+
 
 constexpr unsigned LCD_R = 4;
 constexpr unsigned LCD_C = 20;
@@ -81,9 +84,6 @@ void drawSprite(bool animate)
   lcd.write(0);
 }
 
-
-
-
 void scrollMessage(unsigned row, String msg, int delay)
 {
   for (size_t i = 0; i < LCD_C; i++)
@@ -124,13 +124,14 @@ void x_task_lcd(void *pvParams)
     {
       scrollMessage(1, "IP ADDRESS: " + current_ip, 250);
       lcd.clear();
-
-    } else {
+    }
+    else
+    {
       scrollMessage(0, "NETWORK FAILED !!!", 250);
       lcd.clear();
     }
 
-    lcd.draw_horizontal_graph(2,0,80,20);
+    lcd.draw_horizontal_graph(2, 0, 80, 20);
     lcd.clear();
 
     Serial.println("[DEBUG] STACK SIZE: " + String(uxTaskGetStackHighWaterMark(nullptr)));
@@ -140,12 +141,16 @@ void x_task_lcd(void *pvParams)
   }
 }
 
-String ipv4Convert(IPAddress& ip) {
+String ipv4Convert(IPAddress &ip)
+{
   String ADDR;
   ADDR.reserve(16);
-  ADDR = ip[0];  ADDR += '.';
-  ADDR += ip[1]; ADDR += '.';
-  ADDR += ip[2]; ADDR += '.';
+  ADDR = ip[0];
+  ADDR += '.';
+  ADDR += ip[1];
+  ADDR += '.';
+  ADDR += ip[2];
+  ADDR += '.';
   ADDR += ip[3];
   return ADDR;
 }
@@ -201,10 +206,11 @@ void setup()
   lcd.backlight();
   delay(200);
 
+  soundmessage();
+
   xTaskCreate(x_task_lcd, "X_TASK_LCD", 3000, NULL, 1, &X_LCD);
   xTaskCreate(x_task_wifi, "X_TASK_WIFI", 5000, NULL, 2, &X_WIFI);
   vTaskStartScheduler();
-
 }
 
 void loop()
