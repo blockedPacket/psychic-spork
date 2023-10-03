@@ -64,16 +64,42 @@ void scrollMessage(unsigned row, String msg, int delay)
     }
 }
 
+void drawicons()
+{
+    lcd.setCursor(0, 0);
+    lcd.write(4);
+
+    for (size_t i = 0; i < 4; i++)
+    {
+        lcd.setCursor(0, i);
+        lcd.write(4);
+        lcd.setCursor(19, i);
+        lcd.write(3);
+
+    }
+
+    for(size_t i = 1; i < 19; i ++){
+        lcd.setCursor(i,3);
+        lcd.write(5);
+    }
+}
+
+
 void x_task_lcd(void *pvParams)
 {
 
     lcd.init();
     lcd.backlight();
+    struct API_DATA data;
+    lcd.createChar(3, LEFT_ICON);
+    lcd.createChar(4, RIGHT_ICON);
+    lcd.createChar(5, BOTTOM_BAR);
+
     for (;;)
     {
 
-        lcd.setCursor(0, 0);
-        lcd.print("DASDASDASDASDASDASDASD");
+        lcd.setCursor(2, 0);
+        scrollMessage(1, "WELLCOME !!!", 300);
         vTaskDelay(2000);
         lcd.clear();
 
@@ -86,23 +112,68 @@ void x_task_lcd(void *pvParams)
         vTaskDelay(2000);
         lcd.clear();
 
-        // if (current_ip.length() > 0)
+        vTaskDelay(1000);
+
+        if (WiFi.status() == WL_CONNECTED)
+        {
+
+            if (xQueueReceive(API_DATA_QUEUE, &data, portMAX_DELAY) == pdPASS)
+            {
+
+                drawicons();
+
+                lcd.setCursor(1, 0);
+                lcd.print("CPU-USAGE:  " + data.cpu_percent);
+                lcd.setCursor(1, 1);
+                lcd.print("CPU-CORES:  " + data.cpu_total_cores);
+                // lcd.setCursor(1, 2);
+                // lcd.print("CPU-THR:    " + data.cpu_total_threads);
+                vTaskDelay(20000);
+                lcd.clear();
+
+                drawicons();
+
+                lcd.setCursor(1, 0);
+                lcd.print("RAM-USAGE: " + data.memory_percent);
+                lcd.setCursor(1, 1);
+                lcd.print("RAM-TOTAL: " + data.memory_total);
+                lcd.setCursor(1, 2);
+                lcd.print("RAM-USED:  " + data.memory_used);
+                vTaskDelay(20000);
+                lcd.clear();
+
+
+            }
+        }
+        else
+        {
+            scrollMessage(1, "NOT DATA", 250);
+        }
+
+        // String current_ip;
+
+        // if (xQueueReceive(ESP32_NETWORK_QUEUE, &esp32_wifi_data, portMAX_DELAY) == pdPASS)
         // {
-        //     scrollMessage(1, "IP ADDRESS: " + current_ip, 250);
-        //     lcd.clear();
+
+        //     current_ip = esp32_wifi_data.ipv4;
         // }
         // else
         // {
-        //     scrollMessage(0, "NETWORK FAILED !!!", 250);
-        //     lcd.clear();
+        //     current_ip = "";
         // }
 
-        lcd.draw_horizontal_graph(2, 0, 80, 20);
-        lcd.clear();
+        // if (current_ip.length() > 0)
+        // {
+        //     unsigned long start = millis();
+        //     while (millis() - start < WIFI_CHECK_DELAY)
+        //     {
+        //         scrollMessage(1, "IP ADDRESS: " + current_ip, 250);
+        //         lcd.clear();
+        //         vTaskDelay(200);
+        //     }
+        // }
 
         Serial.println("[DEBUG] STACK SIZE: " + String(uxTaskGetStackHighWaterMark(nullptr)));
-
-        vTaskDelay(200);
         taskYIELD();
     }
 }
