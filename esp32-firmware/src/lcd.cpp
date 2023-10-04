@@ -131,9 +131,8 @@ void x_task_lcd(void *pvParams)
             vTaskDelay(2000);
             lcd.clear();
 
-            if (xQueueReceive(API_DATA_QUEUE, &data, portMAX_DELAY) == pdPASS)
+            if (xQueueReceive(API_DATA_QUEUE, &data, portMAX_DELAY) == pdPASS && data.memory_percent != NULL)
             {
-
                 drawicons();
                 lcd.setCursor(1, 1);
                 lcd.print("CPU-RATE:  " + data.cpu_percent);
@@ -179,11 +178,13 @@ void x_task_lcd(void *pvParams)
                 scrollMessage(3, "MAXIMUM PROCESSOR FREQUENCY: " + data.cpu_freq_max, 300);
                 scrollMessage(3, "MINIMUM PROCESSOR FREQUENCY: " + data.cpu_freq_min, 300);
                 lcd.clear();
+            } else {
+                 scrollMessage(1, "ERROR CONNECTING TO API", 250);
             }
         }
         else
         {
-            scrollMessage(1, "NO DATA", 250);
+            scrollMessage(1, "NO INTERNET", 250);
         }
 
         Serial.println("[DEBUG] STACK SIZE: " + String(uxTaskGetStackHighWaterMark(nullptr)));

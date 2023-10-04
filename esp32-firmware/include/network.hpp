@@ -2,7 +2,6 @@
 #define NETWORK_H
 
 #include <WiFi.h>
-
 #define WIFI_SSID "DEFCON"
 #define WIFI_PASSWORD "Explode@98"
 
