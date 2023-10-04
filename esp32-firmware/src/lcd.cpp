@@ -3,6 +3,20 @@
 
 LiquidCrystal_I2C lcd(0x27, coluns, rows);
 
+String ipv4Convert(IPAddress &ip)
+{
+    String ADDR;
+    ADDR.reserve(16);
+    ADDR = ip[0];
+    ADDR += '.';
+    ADDR += ip[1];
+    ADDR += '.';
+    ADDR += ip[2];
+    ADDR += '.';
+    ADDR += ip[3];
+    return ADDR;
+}
+
 void drawSprite(bool animate)
 {
 
@@ -75,15 +89,8 @@ void drawicons()
         lcd.write(4);
         lcd.setCursor(19, i);
         lcd.write(3);
-
-    }
-
-    for(size_t i = 1; i < 19; i ++){
-        lcd.setCursor(i,3);
-        lcd.write(5);
     }
 }
-
 
 void x_task_lcd(void *pvParams)
 {
@@ -99,7 +106,7 @@ void x_task_lcd(void *pvParams)
     {
 
         lcd.setCursor(2, 0);
-        scrollMessage(1, "WELLCOME !!!", 300);
+        scrollMessage(1, "WELCOME !!!", 300);
         vTaskDelay(2000);
         lcd.clear();
 
@@ -117,24 +124,30 @@ void x_task_lcd(void *pvParams)
         if (WiFi.status() == WL_CONNECTED)
         {
 
+            IPAddress ipAddress(WiFi.localIP());
+
+            lcd.setCursor(2, 0);
+            scrollMessage(1, "ESP IPV4: " + ipv4Convert(ipAddress), 300);
+            vTaskDelay(2000);
+            lcd.clear();
+
             if (xQueueReceive(API_DATA_QUEUE, &data, portMAX_DELAY) == pdPASS)
             {
 
                 drawicons();
-
-                lcd.setCursor(1, 0);
-                lcd.print("CPU-USAGE:  " + data.cpu_percent);
                 lcd.setCursor(1, 1);
-                lcd.print("CPU-CORES:  " + data.cpu_total_cores);
-                // lcd.setCursor(1, 2);
-                // lcd.print("CPU-THR:    " + data.cpu_total_threads);
+                lcd.print("CPU-RATE:  " + data.cpu_percent);
+                lcd.setCursor(1, 2);
+                lcd.print(data.cpu_freq_current);
                 vTaskDelay(20000);
                 lcd.clear();
 
-                drawicons();
+                scrollMessage(2, data.system_info, 300);
+                lcd.clear();
 
+                drawicons();
                 lcd.setCursor(1, 0);
-                lcd.print("RAM-USAGE: " + data.memory_percent);
+                lcd.print("RAM-RATE:  " + data.memory_percent);
                 lcd.setCursor(1, 1);
                 lcd.print("RAM-TOTAL: " + data.memory_total);
                 lcd.setCursor(1, 2);
@@ -142,36 +155,36 @@ void x_task_lcd(void *pvParams)
                 vTaskDelay(20000);
                 lcd.clear();
 
+                drawicons();
+                lcd.setCursor(1, 1);
+                lcd.print("GPU-FAN:  " + data.nvidia_fan_speed);
+                lcd.setCursor(1, 2);
+                lcd.print("GPU-TEMP: " + data.nvidia_temperature);
+                vTaskDelay(20000);
+                lcd.clear();
 
+                drawicons();
+                lcd.setCursor(1, 0);
+                lcd.print("GPU-MEM-TOTAL: " + data.nvidia_memory_total);
+                lcd.setCursor(1, 1);
+                lcd.print("GPU-MEM-USED:  " + data.nvidia_memory_used);
+                lcd.setCursor(1, 2);
+                lcd.print("GPU-MEM-FREE:  " + data.nvidia_memory_free);
+                lcd.setCursor(1, 3);
+                lcd.print("GPU-MEM-RATE:  " + data.nvidia_memory_rate);
+                vTaskDelay(20000);
+                lcd.clear();
+                scrollMessage(3, "NVIDIA CUDA VERSION: " + data.nvidia_cuda_version, 300);
+                scrollMessage(3, "NVIDIA DRIVER VERSION: " + data.nvidia_driver_version, 300);
+                scrollMessage(3, "MAXIMUM PROCESSOR FREQUENCY: " + data.cpu_freq_max, 300);
+                scrollMessage(3, "MINIMUM PROCESSOR FREQUENCY: " + data.cpu_freq_min, 300);
+                lcd.clear();
             }
         }
         else
         {
-            scrollMessage(1, "NOT DATA", 250);
+            scrollMessage(1, "NO DATA", 250);
         }
-
-        // String current_ip;
-
-        // if (xQueueReceive(ESP32_NETWORK_QUEUE, &esp32_wifi_data, portMAX_DELAY) == pdPASS)
-        // {
-
-        //     current_ip = esp32_wifi_data.ipv4;
-        // }
-        // else
-        // {
-        //     current_ip = "";
-        // }
-
-        // if (current_ip.length() > 0)
-        // {
-        //     unsigned long start = millis();
-        //     while (millis() - start < WIFI_CHECK_DELAY)
-        //     {
-        //         scrollMessage(1, "IP ADDRESS: " + current_ip, 250);
-        //         lcd.clear();
-        //         vTaskDelay(200);
-        //     }
-        // }
 
         Serial.println("[DEBUG] STACK SIZE: " + String(uxTaskGetStackHighWaterMark(nullptr)));
         taskYIELD();

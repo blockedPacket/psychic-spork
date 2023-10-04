@@ -6,7 +6,6 @@ void x_task_wifi(void *pvParameters)
     {
         if (WiFi.status() == WL_CONNECTED)
         {
-            IPAddress ipAddress(WiFi.localIP());
             vTaskDelay(WIFI_CHECK_DELAY / portTICK_PERIOD_MS);
             Serial.println("[DEBUG] WIFI STACK SIZE: " + String(uxTaskGetStackHighWaterMark(nullptr)));
             continue;
@@ -31,18 +30,4 @@ void x_task_wifi(void *pvParameters)
 
         taskYIELD();
     }
-}
-
-String ipv4Convert(IPAddress &ip)
-{
-    String ADDR;
-    ADDR.reserve(16);
-    ADDR = ip[0];
-    ADDR += '.';
-    ADDR += ip[1];
-    ADDR += '.';
-    ADDR += ip[2];
-    ADDR += '.';
-    ADDR += ip[3];
-    return ADDR;
 }
