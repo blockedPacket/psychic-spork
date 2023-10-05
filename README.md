@@ -10,4 +10,4 @@
 ### LCD VCC -> ESP PIN VIN
 ### BUZZER  -> ESP PIN 18
 
-![Image](https://github.com/blockedPacket/psychic-spork/blob/main/data/im2.jpg =300x200)
+![Image](https://github.com/blockedPacket/psychic-spork/blob/main/data/im2.jpg)
